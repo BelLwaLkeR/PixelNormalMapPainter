@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixelNormalMap", "PixelNormalMap\PixelNormalMap.csproj", "{529B4E8A-901A-42A9-80B8-1D249CC6017B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Device", "Device", "{9D750775-87C6-4FB0-9F9E-83CD04D715F9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharpGL", "SharpGL", "{611CD0F8-8C24-4B2D-BC4B-1DCC210467E3}"
+	ProjectSection(SolutionItems) = preProject
+		SharpGLManager.cs = SharpGLManager.cs
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{529B4E8A-901A-42A9-80B8-1D249CC6017B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{529B4E8A-901A-42A9-80B8-1D249CC6017B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{529B4E8A-901A-42A9-80B8-1D249CC6017B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{529B4E8A-901A-42A9-80B8-1D249CC6017B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{611CD0F8-8C24-4B2D-BC4B-1DCC210467E3} = {9D750775-87C6-4FB0-9F9E-83CD04D715F9}
+	EndGlobalSection
+EndGlobal
