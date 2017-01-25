@@ -5,6 +5,7 @@ using SharpGL;
 using SharpGL.SceneGraph.Assets;
 using System.Drawing;
 using System.Drawing.Imaging;
+using PixelNormalMap.Utility.Type;
 
 namespace PixelNormalMap.Device
 {
@@ -14,16 +15,11 @@ namespace PixelNormalMap.Device
 		private static SharpGLManager instance;
 		private OpenGL glInstance;
 		private uint shaderProgram;
-		private System.Drawing.Imaging.BitmapData bitmap;
+		public Vector3 lightPosition;
 
 		uint vertShader;
 		uint fragShader;
-
-		uint[] textureData;
-		uint[] normalMapData;
-
-
-
+	
 		private SharpGLManager() { }
 
 		public static SharpGLManager GetInstance()
@@ -42,7 +38,8 @@ namespace PixelNormalMap.Device
 		public void Initialize(OpenGL glInstance) {
 			instance.glInstance = glInstance;
 			instance.LoadShader("./Shader/NormalMap.vert", "./Shader/NormalMap.frag");
-
+			lightPosition = new Vector3();
+			glInstance.GetInteger(OpenGL.GL_MAX_TEXTURE_IMAGE_UNITS, new int[]{ 5 } );
 		}
 
 		public void WindowResize()
@@ -58,47 +55,95 @@ namespace PixelNormalMap.Device
 			glInstance.MatrixMode(OpenGL.GL_MODELVIEW);
 		}
 
+		private void LoadTexture(string texturePath, string textureName, uint textureNo, uint glTexuteNo) {
+			
+			Texture texture = new Texture();
+			texture.Create(glInstance, texturePath);
+
+			glInstance.ActiveTexture(glTexuteNo);
+			
+			uint glTexture = texture.TextureName;
+			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, glTexture);
+
+
+			glInstance.TexParameter(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, OpenGL.GL_NEAREST);
+			glInstance.TexParameter(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAG_FILTER, OpenGL.GL_NEAREST);
+
+			int id = glInstance.GetUniformLocation(shaderProgram, textureName);
+
+			glInstance.Uniform1ARB(id, textureNo);
+
+			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, glTexture);
+			
+
+		}
+
+		private void SetUniform1(string valueName,  float value) {
+			glInstance.Uniform1(glInstance.GetUniformLocation(shaderProgram, valueName), value);
+		}
+		private void SetUniform3(string valueName, Vector3 value)
+		{
+			glInstance.Uniform3(glInstance.GetUniformLocation(shaderProgram, valueName), value.x, value.y, value.z);
+		}
+		private void SetUniform4(string valueName, Vector4 value)
+		{
+			glInstance.Uniform4(glInstance.GetUniformLocation(shaderProgram, valueName), value.x, value.y, value.z, value.w);
+		}
+
+		private void DrawSetup() {
+
+			//glInstance.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
+			//glInstance.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);              // Black Background
+			//glInstance.ClearDepth(1.0f);                                // Depth Buffer Setup
+			//glInstance.UseProgram(shaderProgram);
+			//glInstance.Disable(OpenGL.GL_DEPTH_TEST);                   // Disables Depth Testing
+			//glInstance.Enable(OpenGL.GL_BLEND);                         // Enable Blending
+
+			//glInstance.Enable(OpenGL.GL_TEXTURE_2D);
+
+			//glInstance.BlendFunc(OpenGL.GL_SRC_ALPHA, OpenGL.GL_ONE);
+			//LoadTexture("./Texture/texture.png"		, "texture");
+			//LoadTexture("./Texture/normal.png"	, "normalMap");
+			//instance.shaderProgram = glInstance.CreateProgram();
+			//glInstance.AttachShader(shaderProgram, vertShader);
+			//glInstance.AttachShader(shaderProgram, fragShader);
+			//glInstance.LinkProgram(shaderProgram);
+
+		}
 
 		public void Draw(double windowWidth, double windowHeight)
 		{
+			//テクスチャ設定
+			//  We need to load the texture from file.
+
+			//  A bit of extra initialisation here, we have to enable textures.
+
+			//DrawSetup();
+			glInstance.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
+			glInstance.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);              // Black Background
+			glInstance.ClearDepth(1.0f);                                // Depth Buffer Setup
+			glInstance.UseProgram(shaderProgram);
+			glInstance.Disable(OpenGL.GL_DEPTH_TEST);                   // Disables Depth Testing
+			
+
 			instance.shaderProgram = glInstance.CreateProgram();
 			glInstance.AttachShader(shaderProgram, vertShader);
 			glInstance.AttachShader(shaderProgram, fragShader);
 			glInstance.LinkProgram(shaderProgram);
 
 
+			//LoadTexture("./Texture/texture.png", "texture", 1);
+			LoadTexture("./Texture/texture.png", "texture2"	, 0, OpenGL.GL_TEXTURE0);
+			LoadTexture("./Texture/normal.png", "normalMap"	, 1, OpenGL.GL_TEXTURE1);
 
-			//テクスチャ設定
-			textureData = new uint[1];
-			uint[] textures = new uint[1];
-			SharpGL.OpenGL gl = glInstance;
-			gl.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);                  // Black Background
-			gl.ClearDepth(1.0f);                            // Depth Buffer Setup
-			gl.Disable(OpenGL.GL_DEPTH_TEST);                       // Disables Depth Testing
-			gl.Enable(OpenGL.GL_BLEND);                         // Enable Blending
-			gl.BlendFunc(OpenGL.GL_SRC_ALPHA, OpenGL.GL_ONE);
-			//  We need to load the texture from file.
+			////LightPosition
+			SetUniform3("lightPosition", lightPosition);
 
-			//  A bit of extra initialisation here, we have to enable textures.
-			gl.Enable(OpenGL.GL_TEXTURE_2D);
-
-			Texture texture = new Texture();
-			texture.Create(gl, @"D:\Texture.png");
-
-			textures[0] = texture.TextureName;
-			gl.BindTexture(OpenGL.GL_TEXTURE_2D, textures[0]);
-
-			gl.TexParameter(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, OpenGL.GL_NEAREST);
-			gl.TexParameter(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAG_FILTER, OpenGL.GL_NEAREST);
-
-			
-			glInstance.Uniform1(glInstance.GetUniformLocation(shaderProgram, "texture"), textures[0]);
+			//LightColor
+			SetUniform3("lightColor", new Vector3(1, 1, 1));
 
 
 			//UseProgram
-			glInstance.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
-			glInstance.UseProgram(shaderProgram);
-
 			glInstance.LoadIdentity();
 			glInstance.Translate(windowWidth / 2, windowHeight / 2, 0.0f);
 			glInstance.Rotate(90.0f, 1.0f, 0.0f, 0.0f);
@@ -109,12 +154,11 @@ namespace PixelNormalMap.Device
 			glInstance.TexCoord(1, 1);	glInstance.Vertex(windowWidth	/ 2, 0.0f, -windowHeight / 2);
 			glInstance.TexCoord(1, 0);	glInstance.Vertex(windowWidth	/ 2, 0.0f,  windowHeight / 2);
 			glInstance.TexCoord(0, 0);	glInstance.Vertex(-windowWidth	/ 2, 0.0f,  windowHeight / 2);
-
-			glInstance.End();
-
+			
 			glInstance.UseProgram(0);
 
 			//  Flush OpenGL
+			glInstance.End();
 			glInstance.Flush();
 		}
 

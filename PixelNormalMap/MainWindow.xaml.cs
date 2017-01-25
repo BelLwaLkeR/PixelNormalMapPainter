@@ -4,6 +4,7 @@ using SharpGL.Shaders;
 using System.Text;
 using System.IO;
 using PixelNormalMap.Device;
+using PixelNormalMap.Utility.Type;
 
 namespace PixelNormalMap
 {
@@ -16,6 +17,7 @@ namespace PixelNormalMap
 		public MainWindow()
 		{
 			InitializeComponent();
+			//System.Environment.CurrentDirectory = System.Environment.CurrentDirectory+"/bin/Debug/";
 		}
 
 		private void OpenGLControl_Loaded(object sender, RoutedEventArgs e)
@@ -24,6 +26,7 @@ namespace PixelNormalMap
 		}
 		private void OpenGLControl_OpenGLDraw(object sender, SharpGL.SceneGraph.OpenGLEventArgs args)
 		{
+			glManager.lightPosition += new Vector3(1f, 1,1);
 			glManager.Draw(Width, Height);
 
 		}

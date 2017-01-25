@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using System.Text;
 using System.Diagnostics;
 
 
@@ -21,10 +20,7 @@ namespace PixelNormalMap.Utility
 				Debug.Assert(!(e is FileNotFoundException), "ファイル[" + path + "]が見つかりませんでした。");
 				Debug.Assert(!(e is DirectoryNotFoundException), "ファイルのディレクトリ[" + path + "]が見つかりませんでした。");
 			}
-
 			return null;
 		}
-
-
 	}
 }

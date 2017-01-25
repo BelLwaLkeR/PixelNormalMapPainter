@@ -71,6 +71,9 @@
     </ApplicationDefinition>
     <Compile Include="Device\EShaderType.cs" />
     <Compile Include="Utility\DataLoader.cs" />
+    <Compile Include="Utility\Type\Vector2.cs" />
+    <Compile Include="Utility\Type\Vector3.cs" />
+    <Compile Include="Utility\Type\Vector4.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

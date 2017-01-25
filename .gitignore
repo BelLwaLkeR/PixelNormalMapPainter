@@ -1,2 +1,6 @@
 /PixelNormalMap/obj/*
+!/PixelNormalMap/obj/Debug/Resource/*
+!/PixelNormalMap/obj/Release/Resource/*
 /PixelNormalMap/bin/*
+!/PixelNormalMap/bin/Debug/Resource/*
+!/PixelNormalMap/bin/Release/Resource/*
