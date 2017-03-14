@@ -69,8 +69,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Core\PaintSystem.cs" />
     <Compile Include="Device\EShaderType.cs" />
     <Compile Include="Utility\DataLoader.cs" />
+    <Compile Include="Utility\SharpGL\SharpGLUtility.cs" />
+    <Compile Include="Utility\Type\EGLTextureNo.cs" />
+    <Compile Include="Utility\Type\ETexutreNo.cs" />
+    <Compile Include="Utility\Type\PictureData.cs" />
     <Compile Include="Utility\Type\Vector2.cs" />
     <Compile Include="Utility\Type\Vector3.cs" />
     <Compile Include="Utility\Type\Vector4.cs" />
