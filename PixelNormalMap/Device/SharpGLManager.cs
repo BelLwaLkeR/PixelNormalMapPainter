@@ -6,21 +6,26 @@ using SharpGL.SceneGraph.Assets;
 using System.Drawing;
 using System.Drawing.Imaging;
 using PixelNormalMap.Utility.Type;
-
+using System.Collections.Generic;
 namespace PixelNormalMap.Device
 {
 	public class SharpGLManager
 	{
-
-		private static SharpGLManager instance;
-		private OpenGL glInstance;
-		private uint shaderProgram;
-		public Vector3 lightPosition;
-
-		uint vertShader;
-		uint fragShader;
+        private	MyFrameWork.Material	colorShader;
+        private	MyFrameWork.GLTexture	color;
+        private	MyFrameWork.GLTexture	normal;
+        private	static SharpGLManager	instance;
+		private	OpenGL					glInstance;
+		private	uint					shaderProgram;
+		public	Vector3					lightPosition;
+		private	List<Texture>			textureList = new List<Texture>();
+		private Shader					shader;
+        uint[]							ids;
 	
-		private SharpGLManager() { }
+		private SharpGLManager() {
+			shader	= new Shader();
+			ids		= new uint[1];
+		}
 
 		public static SharpGLManager GetInstance()
 		{
@@ -36,11 +41,40 @@ namespace PixelNormalMap.Device
 		}
 
 		public void Initialize(OpenGL glInstance) {
-			instance.glInstance = glInstance;
-			instance.LoadShader("./Shader/NormalMap.vert", "./Shader/NormalMap.frag");
+			this.glInstance = glInstance;
+			LoadShader("./Shader/NormalMap.vert", "./Shader/NormalMap.frag");
 			lightPosition = new Vector3();
 			glInstance.GetInteger(OpenGL.GL_MAX_TEXTURE_IMAGE_UNITS, new int[]{ 5 } );
-		}
+
+			instance.shaderProgram = glInstance.CreateProgram();
+			glInstance.AttachShader(shaderProgram, shader.vertex);
+			glInstance.AttachShader(shaderProgram, shader.fragment);
+			glInstance.LinkProgram(shaderProgram);
+
+            Bitmap b = new Bitmap("./Texture/texture.png");
+            
+			Texture texture = new Texture();
+			if(!texture.Create(glInstance, "./Texture/texture.png"))
+            {
+                System.Console.WriteLine("failed");
+            }
+            Bitmap testBitMap = texture.ToBitmap();
+
+            textureList.Add(texture);
+
+
+			Texture texture2 = new Texture();
+			texture2.Create(glInstance, "./Texture/normal.png");
+
+			textureList.Add(texture2);
+
+			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, 0);
+
+            color = new MyFrameWork.GLTexture(glInstance, MyFrameWork.TextureLoader.create("./Texture/texture.png"));
+            colorShader = new MyFrameWork.Material(glInstance, "./Shader/NormalMap.vert", "./Shader/NormalMap.frag");
+            normal = new MyFrameWork.GLTexture(glInstance, MyFrameWork.TextureLoader.create("./Texture/normal.png"));
+
+        }
 
 		public void WindowResize()
 		{
@@ -55,27 +89,83 @@ namespace PixelNormalMap.Device
 			glInstance.MatrixMode(OpenGL.GL_MODELVIEW);
 		}
 
-		private void LoadTexture(string texturePath, string textureName, uint textureNo, uint glTexuteNo) {
-			
-			Texture texture = new Texture();
-			texture.Create(glInstance, texturePath);
+		private void LoadTexture(uint textureID, string textureName, uint textureNo, uint glTextueNo) {
 
-			glInstance.ActiveTexture(glTexuteNo);
-			
-			uint glTexture = texture.TextureName;
-			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, glTexture);
+			int id = glInstance.GetUniformLocation(shaderProgram, textureName);
+			glInstance.Uniform1(id, textureNo);
 
+			glInstance.ActiveTexture(glTextueNo);
+
+			#region comment00
+			//			uint glTexture = texture.TextureName;
+			//			byte[] test = new byte[128 * 128 * 4];
+			//			uint[] ids = new uint[1];
+			//			glInstance.GenTextures(1, ids);
+
+			//			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, ids[0]);
+
+
+			//			CreateTexture(textureName,textureNo, glTextueNo);	//■
+
+
+
+			//			glInstance.TexImage2D(OpenGL.GL_TEXTURE_2D,0, OpenGL.GL_BGRA,128,128,0,)
+
+			#endregion
+
+
+			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, textureID );
+			glInstance.TexParameter(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, OpenGL.GL_NEAREST);
+			glInstance.TexParameter(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAG_FILTER, OpenGL.GL_NEAREST);
+
+//			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, glTexture);
+		}
+
+
+		private void CreateTexture(string textureName, uint textureNo, uint glTextueNo)
+		{
+			glInstance.ActiveTexture(glTextueNo);
+			#region comment
+			//	uint glTexture = texture.TextureName;
+			//	glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, glTexture);
+
+
+			//byte[] img = new byte[28] {
+			//	255,   0,   0, 255,
+			//	  0, 255,   0, 255,
+			//	  0,   0, 255, 255,
+			//	255, 255,   0, 255,
+			//	255,   0, 255, 255,
+			//	  0, 255, 255, 255,
+			//	255, 255, 255, 255
+			//};
+			#endregion
+
+			const uint width	= 128;
+			const uint height	= 128;
+			const uint cDepth	= 4;
+
+			byte[] img = new byte[width * height * cDepth];
+
+			for (int i = 0; i < width * height * cDepth; i++) {
+				img[i] = 255;
+			}
+
+			uint[] texID = new uint[1];
+			glInstance.GenTextures(1, texID);
+			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, texID[0]);
+			glInstance.Enable(OpenGL.GL_TEXTURE_2D);
+
+			glInstance.TexImage2D(OpenGL.GL_TEXTURE_2D, 0, (int)OpenGL.GL_BGRA, (int)width, (int)height, 0, OpenGL.GL_RGBA, OpenGL.GL_BYTE, img);
 
 			glInstance.TexParameter(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, OpenGL.GL_NEAREST);
 			glInstance.TexParameter(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAG_FILTER, OpenGL.GL_NEAREST);
 
-			int id = glInstance.GetUniformLocation(shaderProgram, textureName);
-
-			glInstance.Uniform1ARB(id, textureNo);
-
-			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, glTexture);
-			
-
+			#region comment
+			//			int id = glInstance.GetUniformLocation(shaderProgram, textureName);
+			//			glInstance.Uniform1(id, textureNo);
+			//			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, texID[0]);
+			#endregion
 		}
 
 		private void SetUniform1(string valueName,  float value) {
@@ -90,8 +180,9 @@ namespace PixelNormalMap.Device
 			glInstance.Uniform4(glInstance.GetUniformLocation(shaderProgram, valueName), value.x, value.y, value.z, value.w);
 		}
 
-		private void DrawSetup() {
+		#region DrawSetup
 
+		private void DrawSetup() {
 			//glInstance.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
 			//glInstance.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);              // Black Background
 			//glInstance.ClearDepth(1.0f);                                // Depth Buffer Setup
@@ -110,37 +201,46 @@ namespace PixelNormalMap.Device
 			//glInstance.LinkProgram(shaderProgram);
 
 		}
+		#endregion
 
 		public void Draw(double windowWidth, double windowHeight)
 		{
-			//テクスチャ設定
-			//  We need to load the texture from file.
-
-			//  A bit of extra initialisation here, we have to enable textures.
-
-			//DrawSetup();
 			glInstance.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
 			glInstance.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);              // Black Background
 			glInstance.ClearDepth(1.0f);                                // Depth Buffer Setup
-			glInstance.UseProgram(shaderProgram);
 			glInstance.Disable(OpenGL.GL_DEPTH_TEST);                   // Disables Depth Testing
-			
-
-			instance.shaderProgram = glInstance.CreateProgram();
-			glInstance.AttachShader(shaderProgram, vertShader);
-			glInstance.AttachShader(shaderProgram, fragShader);
-			glInstance.LinkProgram(shaderProgram);
 
 
+
+
+			#region comment
+			//glInstance.UseProgram(shaderProgram);
 			//LoadTexture("./Texture/texture.png", "texture", 1);
-			LoadTexture("./Texture/texture.png", "texture2"	, 0, OpenGL.GL_TEXTURE0);
-			LoadTexture("./Texture/normal.png", "normalMap"	, 1, OpenGL.GL_TEXTURE1);
+			//CreateTexture("texture2" , 1, OpenGL.GL_TEXTURE1);
+			//CreateTexture("normalMap", 2, OpenGL.GL_TEXTURE2);
+			#endregion
 
-			////LightPosition
-			SetUniform3("lightPosition", lightPosition);
+			colorShader.Bind();
 
-			//LightColor
-			SetUniform3("lightColor", new Vector3(1, 1, 1));
+            color.bind(OpenGL.GL_TEXTURE1);
+            colorShader.SetTexture("texture2", 1);
+
+            normal.bind(OpenGL.GL_TEXTURE2);
+            colorShader.SetTexture("normalMap", 2);
+
+
+            //LoadTexture(textureList[0].TextureName, "texture2", 1, OpenGL.GL_TEXTURE0);
+            //LoadTexture(textureList[1].TextureName, "normalMap", 2, OpenGL.GL_TEXTURE1);
+
+            colorShader.SetParameter("lightPosition",  lightPosition);
+
+            colorShader.SetParameter("lightColor", new Vector3(1, 1, 1));
+
+            //LightPosition
+            //   SetUniform3("lightPosition", lightPosition);
+
+            //LightColor
+          //  SetUniform3("lightColor", new Vector3(1, 1, 1));
 
 
 			//UseProgram
@@ -154,8 +254,11 @@ namespace PixelNormalMap.Device
 			glInstance.TexCoord(1, 1);	glInstance.Vertex(windowWidth	/ 2, 0.0f, -windowHeight / 2);
 			glInstance.TexCoord(1, 0);	glInstance.Vertex(windowWidth	/ 2, 0.0f,  windowHeight / 2);
 			glInstance.TexCoord(0, 0);	glInstance.Vertex(-windowWidth	/ 2, 0.0f,  windowHeight / 2);
-			
-			glInstance.UseProgram(0);
+
+			colorShader.UnBind();
+
+			glInstance.BindTexture(OpenGL.GL_TEXTURE_2D, 0);
+
 
 			//  Flush OpenGL
 			glInstance.End();
@@ -193,7 +296,7 @@ namespace PixelNormalMap.Device
 			string resoult = builder.ToString();
 			Debug.Assert(resoult.Equals(""), "VertexShaderCompileError!! " + resoult);
 
-			this.vertShader = vertShader;
+			shader.vertex	= vertShader;
 			//glInstance.AttachShader(shaderProgram, vertShader);
 
 		}
@@ -209,7 +312,7 @@ namespace PixelNormalMap.Device
 
 			Debug.Assert(resoult.Equals(""), "FragmentShaderCompileError!! " + resoult);
 
-			this.fragShader = fragShader;
+			shader.fragment= fragShader;
 //			glInstance.AttachShader(shaderProgram, fragShader);
 
 		}

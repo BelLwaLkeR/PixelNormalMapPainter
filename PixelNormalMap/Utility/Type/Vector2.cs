@@ -5,7 +5,7 @@ using System.Text;
 
 namespace PixelNormalMap.Utility.Type
 {
-	class Vector2
+	public class Vector2
 	{
 		public float x;
 		public float y;
